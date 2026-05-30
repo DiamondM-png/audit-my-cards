@@ -44,7 +44,7 @@ export async function createAuditRow(input: {
     .insert({
       email: input.email,
       business_type: input.businessType,
-      spend_inputs: input.spend as unknown as Record<string, number>,
+      spend_inputs: input.spend as never,
       payment_status: "paid", // payment integration is pending — see admin notes
     })
     .select("id")
@@ -97,7 +97,7 @@ All dollar amounts as plain numbers (no $ or commas).`;
 
   const { error: updateError } = await supabaseAdmin
     .from("audits")
-    .update({ report_output: report as unknown as Record<string, unknown>, updated_at: new Date().toISOString() })
+    .update({ report_output: report as never, updated_at: new Date().toISOString() })
     .eq("id", auditId);
   if (updateError) throw new Error(updateError.message);
 
