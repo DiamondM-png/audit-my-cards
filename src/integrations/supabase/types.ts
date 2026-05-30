@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audits: {
+        Row: {
+          business_type: string
+          created_at: string
+          email: string | null
+          id: string
+          payment_provider: string | null
+          payment_status: string
+          report_output: Json | null
+          spend_inputs: Json
+          updated_at: string
+        }
+        Insert: {
+          business_type: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          payment_provider?: string | null
+          payment_status?: string
+          report_output?: Json | null
+          spend_inputs?: Json
+          updated_at?: string
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          payment_provider?: string | null
+          payment_status?: string
+          report_output?: Json | null
+          spend_inputs?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
