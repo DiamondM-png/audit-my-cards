@@ -26,6 +26,7 @@
   --color-gold-foreground: var(--gold-foreground);
   --color-navy: var(--navy);
   --color-navy-light: var(--navy-light);
+  --color-cream: var(--cream);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
