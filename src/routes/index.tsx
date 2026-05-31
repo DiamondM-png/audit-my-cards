@@ -40,7 +40,14 @@ export const Route = createFileRoute("/")({
 async function startCheckout() {
   const stripe = await stripePromise;
   if (!stripe) return alert("Stripe failed to load.");
-  const { error } = await stripe.redirectToCheckout({
+  const { error } = await (stripe as unknown as {
+    redirectToCheckout: (opts: {
+      lineItems: { price: string; quantity: number }[];
+      mode: "payment" | "subscription";
+      successUrl: string;
+      cancelUrl: string;
+    }) => Promise<{ error?: { message: string } }>;
+  }).redirectToCheckout({
     lineItems: [{ price: PRICE_ID, quantity: 1 }],
     mode: "payment",
     successUrl: `${window.location.origin}/?payment=success`,
