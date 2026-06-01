@@ -420,7 +420,7 @@ function ReportView({ report, email }: { report: Report; email: string }) {
         availability are subject to change by the issuer. All sales final. No refunds.
         <br />
         <br />
-        © 2025 Diamond Media Publishing LLC
+        © 2026 Diamond Media Publishing LLC
       </p>
     </div>
   );
@@ -673,7 +673,7 @@ function Footer() {
           <LogoSVG />
         </div>
         <div className="text-sm">
-          © 2025 Diamond Media Publishing LLC | All Sales Final | No Refunds
+          © 2026 Diamond Media Publishing LLC | All Sales Final | No Refunds
         </div>
         <div className="md:text-right text-sm">mycardaudit.com</div>
       </div>
