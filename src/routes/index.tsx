@@ -17,27 +17,12 @@ const stripePromise = loadStripe(STRIPE_PK);
 
 // ---------- Logo ----------
 const LogoSVG = ({ className = "" }: { className?: string }) => (
-  <svg
-    width="220"
-    height="56"
-    viewBox="0 0 280 70"
-    xmlns="http://www.w3.org/2000/svg"
+  <img
+    src="https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/logo.png"
+    alt="MyCardAudit"
     className={className}
-  >
-    <rect width="280" height="70" rx="6" fill="#0A1628" />
-    <rect width="280" height="70" rx="6" fill="none" stroke="#C9A84C" strokeWidth="1" opacity="0.5" />
-    <rect x="14" y="18" width="38" height="26" rx="3" fill="none" stroke="#C9A84C" strokeWidth="1.5" />
-    <rect x="14" y="26" width="38" height="6" fill="#C9A84C" opacity="0.4" />
-    <rect x="18" y="36" width="10" height="3" rx="1" fill="#C9A84C" />
-    <line x1="64" y1="12" x2="64" y2="58" stroke="#C9A84C" strokeWidth="0.5" opacity="0.4" />
-    <text x="76" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="white" letterSpacing="1">My</text>
-    <text x="104" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="#C9A84C" letterSpacing="1">Card</text>
-    <text x="156" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="white" letterSpacing="1">Audit</text>
-    <line x1="76" y1="36" x2="216" y2="36" stroke="#C9A84C" strokeWidth="1" opacity="0.6" />
-    <text x="76" y="52" fontFamily="Arial,sans-serif" fontSize="9" fill="#C9A84C" letterSpacing="2" opacity="0.9">
-      AI-POWERED BUSINESS CARD STRATEGY
-    </text>
-  </svg>
+    style={{ height: "60px", width: "auto" }}
+  />
 );
 
 // ---------- Stripe checkout ----------
