@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { ArrowRight, Check, CreditCard, Loader2 } from "lucide-react";
 
+// ---------- Config ----------
 const SUPABASE_URL = "https://zbeuyxmldtdghvgqcpar.supabase.co";
 const SUPABASE_ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiZXV5eG1sZHRkZ2h2Z3FjcGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjc1NjEsImV4cCI6MjA5NTgwMzU2MX0.owcRoURxatFL4tap48dEPe8CM_e3F47WLkhSzQ9l61M";
@@ -11,12 +11,691 @@ const EDGE_FN = `${SUPABASE_URL}/functions/v1/generate-audit`;
 const STRIPE_PK =
   "pk_live_51TAqA9LPcYxQfZIIPZ3uZDTBk2ClCmt8gs263meKOmN0DfwnDFoLjKqPCaBGLLcRUObOot8FXD0hWYHFQuIpHS7i00nhLpZAR4";
 const PRICE_ID = "price_1TdBm3LPcYxQfZIIiks7iWWX";
-const LOGO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_141854_eac4a23a-779e-45a3-aa7b-894331fe5b51.png";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 const stripePromise = loadStripe(STRIPE_PK);
 
+// ---------- Logo ----------
+const LogoSVG = ({ className = "" }: { className?: string }) => (
+  <svg
+    width="220"
+    height="56"
+    viewBox="0 0 280 70"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <rect width="280" height="70" rx="6" fill="#0A1628" />
+    <rect width="280" height="70" rx="6" fill="none" stroke="#C9A84C" strokeWidth="1" opacity="0.5" />
+    <rect x="14" y="18" width="38" height="26" rx="3" fill="none" stroke="#C9A84C" strokeWidth="1.5" />
+    <rect x="14" y="26" width="38" height="6" fill="#C9A84C" opacity="0.4" />
+    <rect x="18" y="36" width="10" height="3" rx="1" fill="#C9A84C" />
+    <line x1="64" y1="12" x2="64" y2="58" stroke="#C9A84C" strokeWidth="0.5" opacity="0.4" />
+    <text x="76" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="white" letterSpacing="1">My</text>
+    <text x="104" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="#C9A84C" letterSpacing="1">Card</text>
+    <text x="156" y="30" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="white" letterSpacing="1">Audit</text>
+    <line x1="76" y1="36" x2="216" y2="36" stroke="#C9A84C" strokeWidth="1" opacity="0.6" />
+    <text x="76" y="52" fontFamily="Arial,sans-serif" fontSize="9" fill="#C9A84C" letterSpacing="2" opacity="0.9">
+      AI-POWERED BUSINESS CARD STRATEGY
+    </text>
+  </svg>
+);
+
+// ---------- Stripe checkout ----------
+async function startCheckout() {
+  try {
+    const stripe = await stripePromise;
+    if (!stripe) throw new Error("Stripe failed to load");
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: [{ price: PRICE_ID, quantity: 1 }],
+      mode: "payment",
+      successUrl: `${origin}/?payment=success`,
+      cancelUrl: `${origin}/`,
+    });
+    if (error) alert(error.message);
+  } catch (e) {
+    alert((e as Error).message);
+  }
+}
+
+// ---------- Fade-in hook ----------
+function useFadeIn<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    el.style.opacity = "0";
+    el.style.transform = "translateY(24px)";
+    el.style.transition = "opacity 0.8s ease, transform 0.8s ease";
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
+  const ref = useFadeIn<HTMLDivElement>();
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  );
+}
+
+// ---------- Industry image with fallback ----------
+const INDUSTRIES: { label: string; emoji: string; url: string }[] = [
+  { label: "Contractors", emoji: "🔨", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100507_63e68902-5664-439c-a98b-320c7df43c2d.png" },
+  { label: "Healthcare", emoji: "🩺", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100631_104871e8-13e1-4573-a5da-8fa755776c2e.png" },
+  { label: "Restaurants", emoji: "🍽️", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100745_2073121e-b511-4402-a5a7-2c7fa29b9f29.png" },
+  { label: "Retail", emoji: "🛍️", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100859_fef2f23b-ff42-4627-86a1-8d8db4a950e0.png" },
+  { label: "Trucking", emoji: "🚛", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_101014_5418984c-c022-4531-aef7-c453924e2b94.png" },
+  { label: "Real Estate", emoji: "🏢", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_102116_2dd8b3ea-6a33-421f-bd47-852e34fc01ae.png" },
+];
+
+function IndustryCard({ label, emoji, url }: { label: string; emoji: string; url: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className="relative overflow-hidden rounded-xl aspect-[4/3] group">
+      {!failed ? (
+        <img
+          src={url}
+          alt={label}
+          onError={() => setFailed(true)}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center text-6xl"
+          style={{ background: "linear-gradient(135deg,#0A1628 0%,#112240 100%)" }}
+        >
+          <span>{emoji}</span>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628] via-[#0A1628]/40 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <span className="inline-block text-white font-display text-2xl font-bold border-b-2 border-[#C9A84C] pb-1">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Audit Tool ----------
+const BUSINESS_TYPES = [
+  "General Contractor",
+  "Medical / Dental",
+  "Restaurant / Food Service",
+  "Retail / E-commerce",
+  "Trucking / Logistics",
+  "Real Estate",
+  "Professional Services",
+  "Other",
+];
+
+const SPEND_CATEGORIES = [
+  { key: "travel", label: "Travel (flights, hotels)" },
+  { key: "gas", label: "Gas / Fuel" },
+  { key: "dining", label: "Dining / Meals" },
+  { key: "office_supplies", label: "Office Supplies" },
+  { key: "advertising", label: "Advertising / Marketing" },
+  { key: "shipping", label: "Shipping" },
+  { key: "utilities", label: "Utilities / Internet" },
+  { key: "other", label: "Other Business Spend" },
+];
+
+type Report = {
+  monthlySpend: number;
+  annualSpend: number;
+  currentAnnualRewards: number;
+  projectedAnnualRewards: number;
+  delta: number;
+  recommendations: { name: string; reason: string; rate: string }[];
+  actionPlan: string[];
+};
+
+function fallbackReport(spend: Record<string, number>, currentRate: number): Report {
+  const monthlySpend = Object.values(spend).reduce((a, b) => a + (Number(b) || 0), 0);
+  const annualSpend = monthlySpend * 12;
+  const currentAnnualRewards = Math.round(annualSpend * (currentRate / 100));
+  const projectedAnnualRewards = Math.round(annualSpend * 0.035);
+  return {
+    monthlySpend,
+    annualSpend,
+    currentAnnualRewards,
+    projectedAnnualRewards,
+    delta: projectedAnnualRewards - currentAnnualRewards,
+    recommendations: [
+      { name: "Chase Ink Business Preferred", reason: "3X on travel, shipping, advertising, internet", rate: "3X categories + 1X base" },
+      { name: "Amex Business Gold", reason: "4X on top 2 spend categories monthly", rate: "4X top-2 / 1X base" },
+      { name: "Capital One Spark Cash Plus", reason: "Flat 2% cash back, no category caps", rate: "2% unlimited" },
+    ],
+    actionPlan: [
+      "Apply for the highest-multiplier card matching your largest spend bucket this week",
+      "Route bonus-category spend through the new card immediately",
+      "Add a flat 2% catch-all card for everything outside bonus categories",
+    ],
+  };
+}
+
+function AuditTool() {
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [businessType, setBusinessType] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [spend, setSpend] = useState<Record<string, number>>({});
+  const [currentCard, setCurrentCard] = useState("");
+  const [currentRate, setCurrentRate] = useState<number>(1);
+  const [report, setReport] = useState<Report | null>(null);
+
+  const setSpendVal = (k: string, v: string) =>
+    setSpend((s) => ({ ...s, [k]: Number(v) || 0 }));
+
+  async function generate() {
+    if (!businessType || !email) {
+      alert("Please complete the previous step.");
+      setStep(1);
+      return;
+    }
+    setStep(3);
+    const payload = {
+      business_type: businessType,
+      business_name: businessName,
+      email,
+      spend_inputs: { ...spend, current_card: currentCard, current_rate: currentRate },
+      payment_status: "paid",
+    };
+
+    // Save submission (best-effort)
+    try {
+      await supabase.from("audit_submissions").insert(payload);
+    } catch (e) {
+      console.error("Supabase insert failed", e);
+    }
+
+    // Call edge function
+    let r: Report | null = null;
+    try {
+      const res = await fetch(EDGE_FN, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          apikey: SUPABASE_ANON,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && (data.recommendations || data.report)) {
+          r = (data.report ?? data) as Report;
+        }
+      }
+    } catch (e) {
+      console.error("Edge function failed", e);
+    }
+
+    if (!r) r = fallbackReport(spend, currentRate);
+    setReport(r);
+    setStep(4);
+  }
+
+  return (
+    <section className="bg-[#0A1628] text-white py-20 px-4">
+      <div className="max-w-[560px] mx-auto">
+        <div className="flex justify-center gap-3 mb-10">
+          {[1, 2, 3, 4].map((n) => (
+            <div
+              key={n}
+              className="h-2.5 w-2.5 rounded-full transition-colors"
+              style={{ background: step >= n ? "#C9A84C" : "#1f2d44" }}
+            />
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div>
+            <h2 className="font-display text-4xl font-bold mb-2">Your Business</h2>
+            <p className="text-[#8892A4] mb-8">Tell us who you are. This takes 30 seconds.</p>
+            <div className="space-y-5">
+              <Field label="Business Type *">
+                <select
+                  value={businessType}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  className="input"
+                >
+                  <option value="">Select…</option>
+                  {BUSINESS_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Business Name (optional)">
+                <input
+                  className="input"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Acme LLC"
+                />
+              </Field>
+              <Field label="Email *">
+                <input
+                  type="email"
+                  className="input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@business.com"
+                />
+              </Field>
+            </div>
+            <button
+              onClick={() => {
+                if (!businessType || !email) return alert("Business type and email are required.");
+                setStep(2);
+              }}
+              className="btn-gold w-full mt-8"
+            >
+              Next: Monthly Spend →
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <h2 className="font-display text-4xl font-bold mb-2">Monthly Spend</h2>
+            <p className="text-[#8892A4] mb-8">Estimate is fine. We're looking for the shape of your spend.</p>
+            <div className="grid grid-cols-2 gap-4">
+              {SPEND_CATEGORIES.map((c) => (
+                <Field key={c.key} label={c.label}>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8892A4]">$</span>
+                    <input
+                      type="number"
+                      min={0}
+                      className="input pl-7"
+                      value={spend[c.key] ?? ""}
+                      onChange={(e) => setSpendVal(c.key, e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </Field>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <Field label="Current Card">
+                <input
+                  className="input"
+                  value={currentCard}
+                  onChange={(e) => setCurrentCard(e.target.value)}
+                  placeholder="e.g. Chase Ink Cash"
+                />
+              </Field>
+              <Field label="Current Rewards Rate (%)">
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  className="input"
+                  value={currentRate}
+                  onChange={(e) => setCurrentRate(Number(e.target.value) || 0)}
+                />
+              </Field>
+            </div>
+            <div className="flex gap-3 mt-8">
+              <button onClick={() => setStep(1)} className="btn-ghost flex-1">
+                ← Back
+              </button>
+              <button onClick={generate} className="btn-gold flex-[2]">
+                Generate My Report →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="text-center py-16">
+            <div className="mx-auto h-16 w-16 border-4 border-[#C9A84C]/30 border-t-[#C9A84C] rounded-full animate-spin" />
+            <h2 className="font-display text-3xl font-bold mt-8">Analyzing Your Card Strategy…</h2>
+            <p className="text-[#8892A4] mt-3">
+              Our AI is reviewing your spend profile against 200+ business cards.
+            </p>
+          </div>
+        )}
+
+        {step === 4 && report && (
+          <ReportView report={report} email={email} />
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-sm font-medium text-[#E2C172] mb-2">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ReportView({ report, email }: { report: Report; email: string }) {
+  return (
+    <div className="max-w-[560px] mx-auto">
+      <div className="text-center mb-10">
+        <div className="inline-block text-xs tracking-[0.25em] text-[#C9A84C] mb-3">YOUR CUSTOM REPORT</div>
+        <h2 className="font-display text-4xl font-bold">Card Strategy for {email}</h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <Stat label="Annual Spend" value={`$${report.annualSpend.toLocaleString()}`} />
+        <Stat label="Current Rewards" value={`$${report.currentAnnualRewards.toLocaleString()}`} />
+        <Stat label="Projected Rewards" value={`$${report.projectedAnnualRewards.toLocaleString()}`} accent />
+        <Stat label="Annual Gain" value={`+$${Math.max(report.delta, 0).toLocaleString()}`} accent />
+      </div>
+
+      <h3 className="font-display text-2xl font-bold mb-4">Recommended Card Stack</h3>
+      <div className="space-y-3 mb-8">
+        {report.recommendations.map((c) => (
+          <div key={c.name} className="bg-[#112240] border border-[#C9A84C]/30 rounded-xl p-5">
+            <div className="flex items-start justify-between gap-3">
+              <h4 className="font-display text-xl font-bold text-white">{c.name}</h4>
+              <span className="shrink-0 text-xs px-2 py-1 rounded bg-[#C9A84C]/15 text-[#E2C172]">{c.rate}</span>
+            </div>
+            <p className="text-[#8892A4] mt-2 text-sm">{c.reason}</p>
+          </div>
+        ))}
+      </div>
+
+      <h3 className="font-display text-2xl font-bold mb-4">Your 3-Step Action Plan</h3>
+      <ol className="space-y-3 mb-10">
+        {report.actionPlan.map((s, i) => (
+          <li key={i} className="flex gap-4 bg-[#112240] rounded-xl p-4">
+            <span className="h-8 w-8 shrink-0 rounded-full bg-[#C9A84C] text-[#0A1628] font-bold flex items-center justify-center">
+              {i + 1}
+            </span>
+            <span className="text-white/90 pt-1">{s}</span>
+          </li>
+        ))}
+      </ol>
+
+      <p className="text-xs text-[#8892A4] leading-relaxed border-t border-white/10 pt-6">
+        Disclaimer: This report is informational and does not constitute financial advice. Card terms, rewards rates, and
+        availability are subject to change by the issuer. All sales final. No refunds.
+        <br />
+        <br />
+        © 2025 Diamond Media Publishing LLC
+      </p>
+    </div>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className={`rounded-xl p-5 border ${accent ? "border-[#C9A84C] bg-[#C9A84C]/10" : "border-white/10 bg-[#112240]"}`}>
+      <div className="text-xs uppercase tracking-wider text-[#8892A4]">{label}</div>
+      <div className={`font-display text-3xl font-bold mt-1 ${accent ? "text-[#E2C172]" : "text-white"}`}>{value}</div>
+    </div>
+  );
+}
+
+// ---------- Landing sections ----------
+function Navbar() {
+  const [open, setOpen] = useState(false);
+  return (
+    <header className="sticky top-0 z-50 bg-[#0A1628] border-b border-[#C9A84C]/25">
+      <div className="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between">
+        <a href="/" aria-label="My Card Audit home" className="flex items-center">
+          <LogoSVG />
+        </a>
+        <button onClick={startCheckout} className="hidden md:inline-flex btn-gold">
+          Get My Audit — $147
+        </button>
+        <button
+          className="md:hidden text-white p-2"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {open ? <path d="M6 6l12 12M6 18L18 6" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
+          </svg>
+        </button>
+      </div>
+      {open && (
+        <div className="md:hidden px-5 pb-4">
+          <button
+            onClick={() => {
+              setOpen(false);
+              startCheckout();
+            }}
+            className="btn-gold w-full"
+          >
+            Get My Audit — $147
+          </button>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="bg-[#0A1628] text-white py-24 px-5 relative overflow-hidden">
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(600px circle at 80% 20%, rgba(201,168,76,0.18), transparent 60%), radial-gradient(500px circle at 10% 90%, rgba(201,168,76,0.10), transparent 60%)",
+        }}
+      />
+      <Reveal className="max-w-5xl mx-auto text-center relative">
+        <span className="inline-block text-[11px] tracking-[0.3em] text-[#C9A84C] border border-[#C9A84C]/60 rounded-full px-4 py-1.5">
+          AI-POWERED AUDIT
+        </span>
+        <h1 className="font-display text-5xl md:text-[64px] leading-[1.05] font-black mt-7">
+          You're Leaving <span className="text-[#C9A84C]">Thousands</span>
+          <br />
+          on the Table Every Month
+        </h1>
+        <p className="text-lg text-[#8892A4] mt-6 max-w-2xl mx-auto">
+          Enter your monthly business spend and our AI builds your optimized card strategy in under 30 seconds.
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto mt-10">
+          <div className="bg-[#112240] border border-[#C9A84C]/40 rounded-xl p-6 text-left">
+            <div className="font-display text-3xl font-bold text-[#E2C172]">$14,400</div>
+            <div className="text-sm text-[#8892A4] mt-1">Avg annual savings found</div>
+          </div>
+          <div className="bg-[#112240] border border-[#C9A84C]/40 rounded-xl p-6 text-left">
+            <div className="font-display text-3xl font-bold text-[#E2C172]">3 min</div>
+            <div className="text-sm text-[#8892A4] mt-1">To complete your audit</div>
+          </div>
+        </div>
+
+        <button onClick={startCheckout} className="btn-gold mt-10 text-lg px-10 py-5">
+          Get My Business Card Audit — $147 →
+        </button>
+        <p className="text-xs text-[#8892A4] mt-4">
+          One-time payment · Instant delivery · No refunds
+        </p>
+      </Reveal>
+    </section>
+  );
+}
+
+function SocialProof() {
+  const quotes = [
+    { q: "Switched cards based on the report. Earning $1,400/month now instead of $400. Paid for itself in 3 days.", n: "Mike T., General Contractor" },
+    { q: "I had no idea my dental supply spend qualified for 4X points. This audit changed how I think about every purchase.", n: "Dr. Sarah K., Dentist" },
+    { q: "Simple, fast, and the recommendations were spot on. Best $147 I've spent on my business this year.", n: "James R., Restaurant Owner" },
+  ];
+  return (
+    <section className="bg-[#F5F0E8] py-20 px-5">
+      <Reveal className="max-w-6xl mx-auto">
+        <h2 className="font-display text-4xl md:text-5xl font-bold text-center text-[#0A1628] mb-12">
+          What Business Owners Are Saying
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {quotes.map((q) => (
+            <div key={q.n} className="bg-white rounded-xl p-7 shadow-[0_10px_30px_-15px_rgba(10,22,40,0.18)] border-l-4 border-[#C9A84C]">
+              <p className="text-[#0A1628] text-lg leading-relaxed">"{q.q}"</p>
+              <p className="mt-5 text-sm font-semibold text-[#8892A4]">— {q.n}</p>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function DemoVideo() {
+  return (
+    <section className="bg-[#0A1628] py-20 px-5 text-white">
+      <Reveal className="max-w-5xl mx-auto text-center">
+        <h2 className="font-display text-4xl md:text-5xl font-bold">See It In Action</h2>
+        <p className="text-[#8892A4] mt-3 mb-10">Watch a real audit completed in under 3 minutes</p>
+        <div className="mx-auto rounded-2xl overflow-hidden border-2 border-[#C9A84C]/70 shadow-2xl" style={{ maxWidth: 860 }}>
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/hp2oMPUeK1A"
+              title="My Card Audit Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function IndustryGrid() {
+  return (
+    <section className="bg-white py-20 px-5">
+      <Reveal className="max-w-6xl mx-auto">
+        <h2 className="font-display text-4xl md:text-5xl font-bold text-center text-[#0A1628]">
+          Built for Operators, Not Tourists
+        </h2>
+        <p className="text-[#8892A4] text-center mt-4 max-w-2xl mx-auto">
+          If you're spending $10K+/month on a business card, you're leaving money on the table. Period.
+        </p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {INDUSTRIES.map((i) => (
+            <IndustryCard key={i.label} {...i} />
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    { n: "01", t: "Enter Your Monthly Spend", d: "Categorize where your business spends each month — takes under 2 minutes" },
+    { n: "02", t: "AI Analyzes Your Card Strategy", d: "Our engine matches your spend profile against the entire US business card market" },
+    { n: "03", t: "Get Your Custom Report Instantly", d: "Real card recommendations, projected rewards, and a 3-step action plan" },
+  ];
+  return (
+    <section className="bg-[#F5F0E8] py-20 px-5">
+      <Reveal className="max-w-6xl mx-auto">
+        <h2 className="font-display text-4xl md:text-5xl font-bold text-center text-[#0A1628] mb-16">How It Works</h2>
+        <div className="relative grid md:grid-cols-3 gap-10">
+          <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-px bg-[#C9A84C]/40" />
+          {steps.map((s) => (
+            <div key={s.n} className="text-center relative">
+              <div className="mx-auto h-16 w-16 rounded-full bg-[#C9A84C] text-[#0A1628] font-display font-bold text-xl flex items-center justify-center shadow-lg relative">
+                {s.n}
+              </div>
+              <h3 className="font-display text-2xl font-bold text-[#0A1628] mt-6">{s.t}</h3>
+              <p className="text-[#8892A4] mt-3 leading-relaxed">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function WhatYouGet() {
+  const items = [
+    "Personalized 2-3 card stack recommendation",
+    "Projected annual rewards vs your current earnings",
+    "Side-by-side comparison with real card data",
+    "Step-by-step action plan to deploy this week",
+  ];
+  return (
+    <section className="bg-[#0A1628] py-20 px-5 text-white">
+      <Reveal className="max-w-5xl mx-auto">
+        <h2 className="font-display text-4xl md:text-5xl font-bold text-center mb-12">What You Get</h2>
+        <div className="grid sm:grid-cols-2 gap-5">
+          {items.map((it) => (
+            <div key={it} className="bg-[#112240] border border-[#C9A84C]/25 rounded-xl p-6 flex items-start gap-4">
+              <span className="shrink-0 h-9 w-9 rounded-full bg-[#C9A84C] text-[#0A1628] flex items-center justify-center font-bold">
+                ✓
+              </span>
+              <span className="text-lg pt-1">{it}</span>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function PriceBlock() {
+  return (
+    <section
+      className="py-24 px-5 text-center"
+      style={{ background: "linear-gradient(135deg,#C9A84C 0%,#A8862A 100%)" }}
+    >
+      <Reveal className="max-w-3xl mx-auto text-[#0A1628]">
+        <div className="text-xs tracking-[0.3em] font-semibold">ONE-TIME PAYMENT</div>
+        <div className="font-display font-black mt-4" style={{ fontSize: 96, lineHeight: 1 }}>
+          $147
+        </div>
+        <p className="mt-4 text-lg font-medium">Instant delivery. All sales final. No refunds.</p>
+        <button
+          onClick={startCheckout}
+          className="mt-8 inline-flex items-center justify-center bg-[#0A1628] text-white font-semibold px-10 py-5 rounded-full text-lg shadow-xl hover:bg-[#112240] transition-colors"
+        >
+          Start My Audit Now →
+        </button>
+        <p className="text-sm mt-4 text-[#0A1628]/80">
+          Join hundreds of business owners already optimizing their card rewards
+        </p>
+      </Reveal>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-[#0A1628] border-t border-[#C9A84C]/25 text-[#8892A4] py-10 px-5">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 items-center text-center md:text-left">
+        <div className="flex md:justify-start justify-center">
+          <LogoSVG />
+        </div>
+        <div className="text-sm">
+          © 2025 Diamond Media Publishing LLC | All Sales Final | No Refunds
+        </div>
+        <div className="md:text-right text-sm">mycardaudit.com</div>
+      </div>
+    </footer>
+  );
+}
+
+// ---------- Route ----------
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -29,611 +708,79 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "My Card Audit — AI Business Card Strategy" },
       {
         property: "og:description",
-        content: "Find out exactly how much you're leaving on the table every month.",
+        content: "Find out exactly how much you're losing on the wrong business card. Custom AI audit in 3 minutes.",
       },
-      { property: "og:image", content: LOGO },
+      { property: "og:type", content: "website" },
     ],
   }),
   component: Page,
 });
 
-async function startCheckout() {
-  const stripe = await stripePromise;
-  if (!stripe) return alert("Stripe failed to load.");
-  const { error } = await (stripe as unknown as {
-    redirectToCheckout: (opts: {
-      lineItems: { price: string; quantity: number }[];
-      mode: "payment" | "subscription";
-      successUrl: string;
-      cancelUrl: string;
-    }) => Promise<{ error?: { message: string } }>;
-  }).redirectToCheckout({
-    lineItems: [{ price: PRICE_ID, quantity: 1 }],
-    mode: "payment",
-    successUrl: `${window.location.origin}/?payment=success`,
-    cancelUrl: window.location.origin + "/",
-  });
-  if (error) alert(error.message);
-}
-
-function CheckoutButton({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  const [loading, setLoading] = useState(false);
-  return (
-    <button
-      onClick={async () => {
-        setLoading(true);
-        try {
-          await startCheckout();
-        } finally {
-          setLoading(false);
-        }
-      }}
-      disabled={loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-md bg-gold px-8 py-4 text-base sm:text-lg font-bold text-gold-foreground hover:opacity-90 transition shadow-xl disabled:opacity-60 ${className}`}
-    >
-      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : children}
-    </button>
-  );
-}
-
-function useFadeIn() {
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>("[data-fade]");
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add("opacity-100", "translate-y-0");
-            e.target.classList.remove("opacity-0", "translate-y-4");
-            io.unobserve(e.target);
-          }
-        }
-      },
-      { threshold: 0.1 },
-    );
-    els.forEach((el) => {
-      el.classList.add("transition-all", "duration-700", "opacity-0", "translate-y-4");
-      io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-}
-
 function Page() {
   const [showAudit, setShowAudit] = useState(false);
-  const auditRef = useRef<HTMLDivElement>(null);
-  useFadeIn();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
       setShowAudit(true);
-      setTimeout(() => auditRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      setTimeout(() => {
+        document.getElementById("audit-tool")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
+    document.documentElement.style.scrollBehavior = "smooth";
   }, []);
 
   return (
-    <div className="bg-white text-navy scroll-smooth">
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 bg-navy border-b border-navy-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <a href="#top" className="flex items-center">
-            <img src={LOGO} alt="My Card Audit" style={{ height: 50 }} className="object-contain" />
-          </a>
-          <CheckoutButton className="!px-4 !py-2 !text-sm sm:!text-base">
-            Get My Audit — $147
-          </CheckoutButton>
-        </div>
-      </header>
-
-      {/* HERO */}
-      <section id="top" className="bg-navy text-white min-h-[92vh] flex items-center px-4 sm:px-6 py-20">
-        <div className="max-w-5xl mx-auto text-center w-full">
-          <span className="inline-block text-gold border border-gold/40 bg-gold/10 px-3 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase mb-8">
-            AI-Powered Audit
-          </span>
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] mb-6">
-            You're Leaving <span className="text-gold">Thousands</span>
-            <br />
-            on the Table Every Month
-          </h1>
-          <p className="text-lg sm:text-xl text-white/75 max-w-2xl mx-auto mb-10">
-            Enter your monthly business spend and our AI builds your optimized card strategy in under 30 seconds.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10">
-            <div className="border-2 border-gold/60 rounded-md p-6 bg-navy-light/40">
-              <div className="font-display text-3xl sm:text-4xl font-black text-gold mb-1">$14,400</div>
-              <div className="text-sm text-white/70 uppercase tracking-wider">Avg annual savings found</div>
-            </div>
-            <div className="border-2 border-gold/60 rounded-md p-6 bg-navy-light/40">
-              <div className="font-display text-3xl sm:text-4xl font-black text-gold mb-1">3 min</div>
-              <div className="text-sm text-white/70 uppercase tracking-wider">To complete your audit</div>
-            </div>
-          </div>
-
-          <CheckoutButton>
-            Get My Business Card Audit — $147 <ArrowRight className="w-5 h-5" />
-          </CheckoutButton>
-          <p className="text-sm text-white/50 mt-4">
-            One-time payment · Instant delivery · No refunds
-          </p>
-        </div>
-      </section>
-
-      {/* DEMO VIDEO */}
-      <section className="bg-navy-light py-20 sm:py-24 px-4 sm:px-6 text-white">
-        <div className="max-w-5xl mx-auto text-center" data-fade>
-          <h2 className="font-display text-4xl sm:text-5xl font-black mb-3">See It In Action</h2>
-          <p className="text-white/70 mb-10">Watch a real audit completed in under 3 minutes</p>
-          <div className="max-w-[900px] mx-auto rounded-xl overflow-hidden shadow-2xl border border-gold/30">
-            <div className="relative" style={{ paddingBottom: "56.25%" }}>
-              <iframe
-                className="absolute inset-0 w-full h-full"
-                src="https://www.youtube.com/embed/hp2oMPUeK1A"
-                title="My Card Audit demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INDUSTRY GRID */}
-      <section className="py-20 sm:py-24 px-4 sm:px-6" style={{ backgroundColor: "#F5F0E8" }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14" data-fade>
-            <h2 className="font-display text-4xl sm:text-5xl font-black mb-4">
-              Built for Operators, Not Tourists
-            </h2>
-            <p className="text-lg text-navy/70 max-w-2xl mx-auto">
-              If you're spending $10K+/month on a business card, you're leaving money on the table. Period.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            {[
-              ["Contractors", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100507_63e68902-5664-439c-a98b-320c7df43c2d.png"],
-              ["Healthcare", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100631_104871e8-13e1-4573-a5da-8fa755776c2e.png"],
-              ["Restaurants", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100745_2073121e-b511-4402-a5a7-2c7fa29b9f29.png"],
-              ["Retail", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100859_fef2f23b-ff42-4627-86a1-8d8db4a950e0.png"],
-              ["Trucking", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_101014_5418984c-c022-4531-aef7-c453924e2b94.png"],
-              ["Real Estate", "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_102116_2dd8b3ea-6a33-421f-bd47-852e34fc01ae.png"],
-            ].map(([label, src]) => (
-              <div
-                key={label}
-                data-fade
-                className="relative aspect-[4/3] rounded-lg overflow-hidden group cursor-pointer"
-              >
-                <img src={src} alt={label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h3 className="font-display text-white text-2xl font-black">{label}</h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WHAT YOU GET */}
-      <section className="bg-navy text-white py-20 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="font-display text-4xl sm:text-5xl font-black text-center mb-14" data-fade>
-            What You Get
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-5">
-            {[
-              "Personalized 2-3 card stack recommendation",
-              "Projected annual rewards vs your current earnings",
-              "Side-by-side comparison with real card data",
-              "Step-by-step action plan to deploy this week",
-            ].map((t) => (
-              <div
-                key={t}
-                data-fade
-                className="flex items-start gap-4 p-6 rounded-lg bg-navy-light border border-white/5"
-              >
-                <div className="shrink-0 w-8 h-8 rounded-full bg-gold flex items-center justify-center">
-                  <Check className="w-5 h-5 text-navy" strokeWidth={3} />
-                </div>
-                <span className="text-lg font-medium">{t}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICE */}
-      <section className="bg-navy text-white py-24 px-4 sm:px-6 border-t border-navy-light">
-        <div className="max-w-2xl mx-auto text-center" data-fade>
-          <p className="text-gold uppercase tracking-[0.3em] text-xs font-bold mb-4">One-Time Payment</p>
-          <div className="font-display font-black text-gold leading-none mb-3" style={{ fontSize: 80 }}>
-            $147
-          </div>
-          <p className="text-white/60 mb-10">Instant delivery. All sales final. No refunds.</p>
-          <CheckoutButton>
-            Start My Audit Now <ArrowRight className="w-5 h-5" />
-          </CheckoutButton>
-        </div>
-      </section>
-
-      {/* AUDIT TOOL */}
+    <div className="bg-white text-[#0A1628] font-sans antialiased">
+      <Navbar />
       {showAudit && (
-        <section ref={auditRef} id="audit" className="bg-white py-20 px-4 sm:px-6">
+        <div id="audit-tool">
           <AuditTool />
-        </section>
+        </div>
       )}
+      <Hero />
+      <SocialProof />
+      <DemoVideo />
+      <IndustryGrid />
+      <HowItWorks />
+      <WhatYouGet />
+      <PriceBlock />
+      <Footer />
 
-      {/* FOOTER */}
-      <footer className="bg-navy text-white/60 border-t border-navy-light py-8 px-4 text-center text-sm">
-        © 2025 Diamond Media Publishing LLC &nbsp;|&nbsp; All Sales Final &nbsp;|&nbsp; No Refunds
-      </footer>
-    </div>
-  );
-}
-
-// ===================== AUDIT TOOL =====================
-
-type BizForm = { businessType: string; businessName: string; email: string };
-type SpendForm = {
-  materials: string;
-  advertising: string;
-  travel: string;
-  equipment: string;
-  utilities: string;
-  payroll: string;
-  office: string;
-  other: string;
-  currentCard: string;
-  rewardsRate: string;
-};
-
-const BIZ_TYPES = [
-  "Contractor / Construction",
-  "Healthcare / Dental / Medical",
-  "Restaurant / Food Service",
-  "Retail / E-commerce",
-  "Trucking / Logistics",
-  "Real Estate",
-  "Professional Services",
-  "Other",
-];
-
-const SPEND_FIELDS: { key: keyof SpendForm; label: string }[] = [
-  { key: "materials", label: "Materials / Supplies" },
-  { key: "advertising", label: "Advertising / Marketing" },
-  { key: "travel", label: "Travel / Gas / Fleet" },
-  { key: "equipment", label: "Equipment / Tools" },
-  { key: "utilities", label: "Utilities / Telecom" },
-  { key: "payroll", label: "Payroll / Contractors" },
-  { key: "office", label: "Office / Admin" },
-  { key: "other", label: "Other Business" },
-];
-
-function AuditTool() {
-  const [step, setStep] = useState(0);
-  const [biz, setBiz] = useState<BizForm>({ businessType: "", businessName: "", email: "" });
-  const [spend, setSpend] = useState<SpendForm>({
-    materials: "",
-    advertising: "",
-    travel: "",
-    equipment: "",
-    utilities: "",
-    payroll: "",
-    office: "",
-    other: "",
-    currentCard: "",
-    rewardsRate: "",
-  });
-  const [report, setReport] = useState<AuditReport | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = async () => {
-    setError(null);
-    setStep(2);
-    try {
-      const payload = {
-        business_type: biz.businessType,
-        business_name: biz.businessName,
-        email: biz.email,
-        spend: Object.fromEntries(
-          SPEND_FIELDS.map(({ key }) => [key, Number(spend[key]) || 0]),
-        ),
-        current_card: spend.currentCard,
-        rewards_rate: Number(spend.rewardsRate) || 0,
-      };
-
-      // Best-effort store
-      try {
-        await supabase.from("audit_submissions").insert({
-          business_type: payload.business_type,
-          business_name: payload.business_name,
-          email: payload.email,
-          spend_inputs: payload.spend,
-          current_card: payload.current_card,
-          rewards_rate: payload.rewards_rate,
-          payment_status: "paid",
-        });
-      } catch {
-        // ignore storage failure; continue to AI
-      }
-
-      let result: AuditReport;
-      try {
-        const res = await fetch(EDGE_FN, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_ANON}`,
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Edge function failed");
-        result = await res.json();
-      } catch {
-        result = fallbackReport(payload);
-      }
-      setReport(result);
-      setStep(3);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
-      setStep(1);
-    }
-  };
-
-  return (
-    <div className="max-w-3xl mx-auto">
-      {/* Progress dots */}
-      <div className="flex justify-center gap-3 mb-10">
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={`w-3 h-3 rounded-full transition ${
-              i <= step ? "bg-gold" : "bg-navy/20"
-            }`}
-          />
-        ))}
-      </div>
-
-      <div className="bg-white border border-navy/10 rounded-xl shadow-xl p-6 sm:p-10">
-        {step === 0 && (
-          <div className="space-y-5">
-            <h2 className="font-display text-3xl font-black text-navy">Your Business</h2>
-            <div>
-              <label className="block text-sm font-bold mb-2 text-navy">Business Type</label>
-              <select
-                value={biz.businessType}
-                onChange={(e) => setBiz({ ...biz, businessType: e.target.value })}
-                className="w-full rounded-md border border-navy/20 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold"
-              >
-                <option value="">Select…</option>
-                {BIZ_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2 text-navy">Business Name (optional)</label>
-              <input
-                type="text"
-                value={biz.businessName}
-                onChange={(e) => setBiz({ ...biz, businessName: e.target.value })}
-                className="w-full rounded-md border border-navy/20 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2 text-navy">Email</label>
-              <input
-                type="email"
-                value={biz.email}
-                onChange={(e) => setBiz({ ...biz, email: e.target.value })}
-                placeholder="you@business.com"
-                className="w-full rounded-md border border-navy/20 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold"
-              />
-            </div>
-            <button
-              disabled={!biz.businessType || !biz.email}
-              onClick={() => setStep(1)}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-gold px-6 py-3 font-bold text-gold-foreground disabled:opacity-40 hover:opacity-90"
-            >
-              Next: Monthly Spend <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-5">
-            <h2 className="font-display text-3xl font-black text-navy">Monthly Spend</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SPEND_FIELDS.map(({ key, label }) => (
-                <div key={key}>
-                  <label className="block text-xs font-bold mb-1 text-navy uppercase tracking-wide">{label}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/50">$</span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={spend[key]}
-                      onChange={(e) => setSpend({ ...spend, [key]: e.target.value })}
-                      placeholder="0"
-                      className="w-full rounded-md border border-navy/20 pl-7 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-navy/10">
-              <div>
-                <label className="block text-xs font-bold mb-1 text-navy uppercase tracking-wide">Card You Use Most</label>
-                <input
-                  type="text"
-                  value={spend.currentCard}
-                  onChange={(e) => setSpend({ ...spend, currentCard: e.target.value })}
-                  placeholder="e.g. Chase Ink Unlimited"
-                  className="w-full rounded-md border border-navy/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold mb-1 text-navy uppercase tracking-wide">Est. Rewards Rate %</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={spend.rewardsRate}
-                  onChange={(e) => setSpend({ ...spend, rewardsRate: e.target.value })}
-                  placeholder="1.5"
-                  className="w-full rounded-md border border-navy/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold"
-                />
-              </div>
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <div className="flex gap-3">
-              <button onClick={() => setStep(0)} className="px-5 py-3 rounded-md border border-navy/20 font-bold text-navy">
-                Back
-              </button>
-              <button
-                onClick={submit}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-6 py-3 font-bold text-gold-foreground hover:opacity-90 shadow"
-              >
-                Generate My Report <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="py-20 text-center bg-navy rounded-lg -m-6 sm:-m-10 p-12">
-            <div className="w-16 h-16 mx-auto mb-6 border-4 border-gold/30 border-t-gold rounded-full animate-spin" />
-            <h3 className="font-display text-2xl sm:text-3xl font-black text-white mb-3">
-              Analyzing Your Card Strategy...
-            </h3>
-            <p className="text-white/60">
-              Our AI is reviewing your spend profile against 200+ business cards
-            </p>
-          </div>
-        )}
-
-        {step === 3 && report && <ReportView report={report} biz={biz} />}
-      </div>
-    </div>
-  );
-}
-
-// ===================== REPORT =====================
-
-type AuditReport = {
-  additional_annual_rewards: number;
-  current_monthly_rewards: number;
-  optimized_monthly_rewards: number;
-  spend_analysis: string;
-  recommended_cards: { name: string; reason: string }[];
-  action_plan: string[];
-};
-
-function fallbackReport(p: {
-  spend: Record<string, number>;
-  rewards_rate: number;
-}): AuditReport {
-  const monthly = Object.values(p.spend).reduce((a, b) => a + (Number(b) || 0), 0);
-  const currentRate = (p.rewards_rate || 1.5) / 100;
-  const currentMonthly = monthly * currentRate;
-  const optimizedRate = 0.035; // ~3.5% blended optimized
-  const optimizedMonthly = monthly * optimizedRate;
-  const additionalAnnual = Math.round((optimizedMonthly - currentMonthly) * 12);
-  return {
-    additional_annual_rewards: Math.max(0, additionalAnnual),
-    current_monthly_rewards: Math.round(currentMonthly),
-    optimized_monthly_rewards: Math.round(optimizedMonthly),
-    spend_analysis: `Your business runs roughly $${monthly.toLocaleString()}/month through a card earning ~${(currentRate * 100).toFixed(1)}%. The biggest gap is in your top spend categories, where category-bonus business cards routinely return 3-5x.`,
-    recommended_cards: [
-      { name: "Chase Ink Business Preferred", reason: "3x on advertising, travel, and shipping up to $150K/yr — best base for ad-heavy operators." },
-      { name: "American Express Business Gold", reason: "4x on your two highest categories each month — automatically optimizes for shifting spend." },
-      { name: "Capital One Spark Cash Plus", reason: "2% flat on everything that doesn't fit a category bonus — clean catch-all." },
-    ],
-    action_plan: [
-      "Apply for the primary card this week to capture the welcome bonus.",
-      "Route all category-matching spend through the new card immediately.",
-      "Add the supplementary card after 90 days once the first sign-up bonus is earned.",
-    ],
-  };
-}
-
-function ReportView({ report, biz }: { report: AuditReport; biz: BizForm }) {
-  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  return (
-    <div className="space-y-8 text-navy">
-      <div className="border-b border-navy/10 pb-5">
-        <p className="text-xs tracking-[0.3em] uppercase font-bold text-gold mb-2">
-          My Card Audit — Confidential Report
-        </p>
-        <h2 className="font-display text-2xl sm:text-3xl font-black">
-          {biz.businessName || biz.businessType}
-        </h2>
-        <p className="text-sm text-navy/60 mt-1">{date} · {biz.email}</p>
-      </div>
-
-      <div className="bg-gold/15 border-2 border-gold rounded-lg p-8 text-center">
-        <p className="text-xs tracking-[0.25em] uppercase font-bold text-navy mb-3">
-          Estimated Additional Annual Rewards
-        </p>
-        <div className="font-display font-black text-gold leading-none" style={{ fontSize: 64 }}>
-          ${report.additional_annual_rewards.toLocaleString()}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border border-navy/15 bg-white rounded-lg p-5 text-center">
-          <p className="text-xs uppercase tracking-wider text-navy/60 mb-2">Current Monthly</p>
-          <p className="font-display text-3xl font-black">
-            ${report.current_monthly_rewards.toLocaleString()}
-          </p>
-        </div>
-        <div className="border-2 border-gold rounded-lg p-5 text-center bg-gold/5">
-          <p className="text-xs uppercase tracking-wider text-navy/60 mb-2">Optimized Monthly</p>
-          <p className="font-display text-3xl font-black text-gold">
-            ${report.optimized_monthly_rewards.toLocaleString()}
-          </p>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-display text-xl font-black mb-3">Spend Analysis</h3>
-        <p className="text-navy/80 leading-relaxed">{report.spend_analysis}</p>
-      </div>
-
-      <div>
-        <h3 className="font-display text-xl font-black mb-4">Recommended Card Stack</h3>
-        <div className="space-y-3">
-          {report.recommended_cards.map((c, i) => (
-            <div key={i} className="flex gap-4 p-5 border border-navy/15 rounded-lg">
-              <CreditCard className="w-6 h-6 text-gold shrink-0 mt-1" />
-              <div>
-                <p className="font-bold text-lg">{c.name}</p>
-                <p className="text-navy/70 text-sm mt-1">{c.reason}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-display text-xl font-black mb-4">3-Step Action Plan</h3>
-        <div className="space-y-3">
-          {report.action_plan.map((s, i) => (
-            <div key={i} className="flex gap-4 items-start">
-              <div className="shrink-0 w-9 h-9 rounded-full bg-gold flex items-center justify-center font-display font-black text-navy">
-                {i + 1}
-              </div>
-              <p className="text-navy/85 pt-1.5">{s}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <p className="text-xs text-navy/55 leading-relaxed border-t border-navy/10 pt-5">
-        This report is generated by AI based on publicly available card data. Always verify card terms directly with issuers. My Card Audit is not a financial advisor. © 2025 Diamond Media Publishing LLC — All Sales Final · No Refunds
-      </p>
+      <style>{`
+        .input {
+          width: 100%;
+          background: #112240;
+          color: white;
+          border: 1px solid rgba(201,168,76,0.2);
+          border-radius: 10px;
+          padding: 12px 14px;
+          font-size: 15px;
+          outline: none;
+          transition: border-color .15s, box-shadow .15s;
+        }
+        .input::placeholder { color: #5d6a82; }
+        .input:focus { border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(201,168,76,0.18); }
+        select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #C9A84C 50%), linear-gradient(135deg, #C9A84C 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 36px; }
+        select.input option { color: white; background: #0A1628; }
+        .btn-gold {
+          display: inline-flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #C9A84C 0%, #E2C172 100%);
+          color: #0A1628; font-weight: 700; padding: 14px 28px; border-radius: 999px;
+          font-size: 15px; letter-spacing: 0.01em;
+          box-shadow: 0 10px 25px -10px rgba(201,168,76,0.55);
+          transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+        }
+        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 14px 30px -10px rgba(201,168,76,0.7); }
+        .btn-ghost {
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 1px solid rgba(201,168,76,0.4); color: #E2C172;
+          padding: 14px 22px; border-radius: 999px; font-weight: 600;
+          background: transparent;
+        }
+        .btn-ghost:hover { background: rgba(201,168,76,0.08); }
+      `}</style>
     </div>
   );
 }
