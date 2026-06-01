@@ -8,7 +8,7 @@ const SUPABASE_URL = "https://zbeuyxmldtdghvgqcpar.supabase.co";
 const SUPABASE_ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiZXV5eG1sZHRkZ2h2Z3FjcGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjc1NjEsImV4cCI6MjA5NTgwMzU2MX0.owcRoURxatFL4tap48dEPe8CM_e3F47WLkhSzQ9l61M";
 const EDGE_FN = `${SUPABASE_URL}/functions/v1/generate-audit`;
-const STRIPE_PK =
+const STRIPE_PK = "pk_live_51TAqA9LPcYxQfZIIPZ3uZDTBk2ClCmt8gs263meKOmN0DfwnDFoLjKqPCaBGLLcRUObOot8FXD0hWYHFQuIpHS7i00nhLpZAR4";
   "pk_live_51TAqA9LPcYxQfZIIPZ3uZDTBk2ClCmt8gs263meKOmN0DfwnDFoLjKqPCaBGLLcRUObOot8FXD0hWYHFQuIpHS7i00nhLpZAR4";
 const PRICE_ID = "price_1TdBm3LPcYxQfZIIiks7iWWX";
 
