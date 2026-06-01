@@ -46,6 +46,7 @@ async function startCheckout() {
     const stripe = await stripePromise;
     if (!stripe) throw new Error("Stripe failed to load");
     const origin = typeof window !== "undefined" ? window.location.origin : "";
+    // @ts-expect-error redirectToCheckout still works at runtime in client-only mode
     const { error } = await stripe.redirectToCheckout({
       lineItems: [{ price: PRICE_ID, quantity: 1 }],
       mode: "payment",
