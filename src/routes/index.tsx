@@ -94,12 +94,12 @@ function Reveal({ children, className = "" }: { children: ReactNode; className?:
 
 // ---------- Industry image with fallback ----------
 const INDUSTRIES: { label: string; emoji: string; url: string }[] = [
-  { label: "Contractors", emoji: "🔨", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100507_63e68902-5664-439c-a98b-320c7df43c2d.png" },
-  { label: "Healthcare", emoji: "🩺", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100631_104871e8-13e1-4573-a5da-8fa755776c2e.png" },
-  { label: "Restaurants", emoji: "🍽️", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100745_2073121e-b511-4402-a5a7-2c7fa29b9f29.png" },
-  { label: "Retail", emoji: "🛍️", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_100859_fef2f23b-ff42-4627-86a1-8d8db4a950e0.png" },
-  { label: "Trucking", emoji: "🚛", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_101014_5418984c-c022-4531-aef7-c453924e2b94.png" },
-  { label: "Real Estate", emoji: "🏢", url: "https://d8j0ntlcm91z4.cloudfront.net/user_3EU7WtFDVXpmNAKDNpiKw5dTBqH/hf_20260531_102116_2dd8b3ea-6a33-421f-bd47-852e34fc01ae.png" },
+  { label: "Contractors", emoji: "🔨", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/contractor.png" },
+  { label: "Healthcare", emoji: "🩺", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/healthcare.png" },
+  { label: "Restaurants", emoji: "🍽️", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/restaurant.png" },
+  { label: "Retail", emoji: "🛍️", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/retail.png" },
+  { label: "Trucking", emoji: "🚛", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/trucking.png" },
+  { label: "Real Estate", emoji: "🏢", url: "https://raw.githubusercontent.com/DiamondM-png/audit-my-cards/main/public/images/realestate.png" },
 ];
 
 function IndustryCard({ label, emoji, url }: { label: string; emoji: string; url: string }) {
