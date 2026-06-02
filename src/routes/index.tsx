@@ -58,7 +58,7 @@ function useFadeIn<T extends HTMLElement>() {
           obs.disconnect();
         }
       },
-      { threshold: 0.12 },
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
     );
     el.style.opacity = "0";
     el.style.transform = "translateY(24px)";
