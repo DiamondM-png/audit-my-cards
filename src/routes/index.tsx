@@ -554,7 +554,7 @@ function DemoVideo() {
           <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
             <iframe
               className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/hp2oMPUeK1A"
+              src="https://www.youtube.com/embed/fUizaHzSIO4"
               title="My Card Audit Demo"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
