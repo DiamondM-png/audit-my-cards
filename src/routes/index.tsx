@@ -540,6 +540,21 @@ function SocialProof() {
           ))}
         </div>
       </Reveal>
+      <Reveal>
+        <h2 className="font-display text-4xl md:text-5xl font-bold mt-16">See How It Works</h2>
+        <p className="text-[#8892A4] mt-3 mb-10">Watch a full software demo — see exactly what you get for $147</p>
+        <div className="mx-auto rounded-2xl overflow-hidden border-2 border-[#C9A84C]/70 shadow-2xl" style={{ maxWidth: 860 }}>
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/fUizaHzSIO4"
+              title="My Card Audit Software Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -554,7 +569,7 @@ function DemoVideo() {
           <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
             <iframe
               className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/fUizaHzSIO4"
+              src="https://www.youtube.com/embed/hp2oMPUeK1A"
               title="My Card Audit Demo"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
