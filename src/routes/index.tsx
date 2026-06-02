@@ -746,6 +746,24 @@ function Page() {
       <IndustryGrid />
       <HowItWorks />
       <WhatYouGet />
+      <section className="py-20 px-4 bg-[#F5F0E8] text-center">
+        <Reveal>
+          <p className="text-sm font-semibold tracking-widest text-[#C9A84C] uppercase mb-3">See It Before You Buy</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A1628] mb-4">Watch the Full Audit In Action</h2>
+          <p className="text-[#8892A4] mb-10 max-w-xl mx-auto">See exactly what you get for $147 — a real business audit, real card recommendations, and a real action plan generated in under 3 minutes.</p>
+          <div className="mx-auto rounded-2xl overflow-hidden border-2 border-[#C9A84C]/70 shadow-2xl" style={{ maxWidth: 860 }}>
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+              <iframe
+                className="absolute inset-0 w-full h-full"
+                src="https://www.youtube.com/embed/fUizaHzSIO4"
+                title="My Card Audit Software Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </Reveal>
+      </section>
       <PriceBlock />
       <Footer />
 
