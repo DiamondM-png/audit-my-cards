@@ -26,47 +26,9 @@ const LogoSVG = ({ className = "" }: { className?: string }) => (
 );
 
 // ---------- Stripe checkout ----------
-async function startCheckout() {
-  try {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const response = await fetch("/api/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        priceId: PRICE_ID,
-        successUrl: `${origin}/?payment=success`,
-        cancelUrl: `${origin}/`,
-      }),
-    });
-    if (!response.ok) {
-      // Fallback: use Stripe Payment Links directly
-      window.location.href = `https://buy.stripe.com/test_${PRICE_ID}`;
-    }
-    const { url } = await response.json();
-    if (url) window.location.href = url;
-  } catch (e) {
-    // Fallback to Supabase Edge Function for checkout session
-    try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_ANON}`,
-        },
-        body: JSON.stringify({
-          priceId: PRICE_ID,
-          successUrl: `${origin}/?payment=success`,
-          cancelUrl: `${origin}/`,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("Checkout error. Please try again.");
-    } catch (err) {
-      alert("Unable to start checkout. Please try again.");
-    }
-  }
+const PAYMENT_LINK_URL = "https://buy.stripe.com/14AbJ2gEKcc83mL3YI7ss0H";
+function startCheckout() {
+  window.location.href = PAYMENT_LINK_URL;
 }
 
 // ---------- Fade-in hook ----------
