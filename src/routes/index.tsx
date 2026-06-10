@@ -432,7 +432,7 @@ function Navbar() {
           <LogoSVG />
         </a>
         <button onClick={startCheckout} className="hidden md:inline-flex btn-gold">
-          Get My Audit — $147
+          Get My Audit — $199
         </button>
         <button
           className="md:hidden text-white p-2"
@@ -453,7 +453,7 @@ function Navbar() {
             }}
             className="btn-gold w-full"
           >
-            Get My Audit — $147
+            Get My Audit — $199
           </button>
         </div>
       )}
@@ -496,7 +496,7 @@ function Hero() {
         </div>
 
         <button onClick={startCheckout} className="btn-gold mt-10 text-lg px-10 py-5">
-          Get My Business Card Audit — $147 →
+          Get My Business Card Audit — $199 →
         </button>
         <p className="text-xs text-[#8892A4] mt-4">
           One-time payment · Instant delivery · No refunds
@@ -510,7 +510,7 @@ function SocialProof() {
   const quotes = [
     { q: "Switched cards based on the report. Earning $1,400/month now instead of $400. Paid for itself in 3 days.", n: "Mike T., General Contractor" },
     { q: "I had no idea my dental supply spend qualified for 4X points. This audit changed how I think about every purchase.", n: "Dr. Sarah K., Dentist" },
-    { q: "Simple, fast, and the recommendations were spot on. Best $147 I've spent on my business this year.", n: "James R., Restaurant Owner" },
+    { q: "Simple, fast, and the recommendations were spot on. Best $199 I've spent on my business this year.", n: "James R., Restaurant Owner" },
   ];
   return (
     <section className="bg-[#F5F0E8] py-20 px-5">
@@ -635,7 +635,7 @@ function PriceBlock() {
       <Reveal className="max-w-3xl mx-auto text-[#0A1628]">
         <div className="text-xs tracking-[0.3em] font-semibold">ONE-TIME PAYMENT</div>
         <div className="font-display font-black mt-4" style={{ fontSize: 96, lineHeight: 1 }}>
-          $147
+          $199
         </div>
         <p className="mt-4 text-lg font-medium">Instant delivery. All sales final. No refunds.</p>
         <button
@@ -676,7 +676,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered business credit card audit. Enter your monthly spend and get an optimized card stack in under 30 seconds. $147 one-time.",
+          "AI-powered business credit card audit. Enter your monthly spend and get an optimized card stack in under 30 seconds. $199 one-time.",
       },
       { property: "og:title", content: "My Card Audit — AI Business Card Strategy" },
       {
@@ -722,7 +722,7 @@ function Page() {
         <Reveal>
           <p className="text-sm font-semibold tracking-widest text-[#C9A84C] uppercase mb-3">See It Before You Buy</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A1628] mb-4">Watch the Full Audit In Action</h2>
-          <p className="text-[#8892A4] mb-10 max-w-xl mx-auto">See exactly what you get for $147 — a real business audit, real card recommendations, and a real action plan generated in under 3 minutes.</p>
+          <p className="text-[#8892A4] mb-10 max-w-xl mx-auto">See exactly what you get for $199 — a real business audit, real card recommendations, and a real action plan generated in under 3 minutes.</p>
           <div className="mx-auto rounded-2xl overflow-hidden border-2 border-[#C9A84C]/70 shadow-2xl" style={{ maxWidth: 860 }}>
             <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
